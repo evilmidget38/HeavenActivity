@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.mbertoli.jfep.Parser;
 
 public class HeavenActivityConfig {
@@ -19,12 +20,12 @@ public class HeavenActivityConfig {
      * Plugin reference
      */
     protected HeavenActivity plugin;
-    
+
     /**
      * Configuration object
      */
     protected Configuration config;
-    
+
     /**
      * Configuration values
      */
@@ -57,11 +58,11 @@ public class HeavenActivityConfig {
     public String incomeSourceAccount;
     public Map<String, Map<ActivitySource, Double>> multiplierSets = new HashMap<String, Map<ActivitySource, Double>>();
     public boolean logCommands;
-    
-    
+
+
     public HeavenActivityConfig(HeavenActivity plugin) {
         this.plugin = plugin;
-        
+
         File configFile = new File(plugin.getDataFolder() + File.separator + "config.yml");
         if (!configFile.exists()) {
             try {
@@ -84,22 +85,22 @@ public class HeavenActivityConfig {
                 e.printStackTrace();
             }
         }
-        
+
         config = plugin.getConfig();
         load();
     }
-    
+
     public void load() {
         plugin.reloadConfig();
         config = plugin.getConfig();
-        
+
         if (config.isSet("income.base_value") && config.isSet("income.expression")) {
             HeavenActivity.logger.info("[HeavenActivity] Migrating pre-1.0 income configuration to income expression...");
             int baseValue             = config.getInt("income.base_value", 8);
             int targetActivity        = config.getInt("income.target_activity", 50);
             int activityModifier      = config.getInt("income.activity_modifier", 75);
             double balanceMultiplier  = config.getDouble("income.balance_multiplier", 0.0);
-            
+
             StringBuilder exp = new StringBuilder();
             exp.append(baseValue);
             exp.append(" + (((player_activity - ").append(targetActivity).append(") / ").append(activityModifier).append(") * ").append(baseValue).append(")");
@@ -113,7 +114,7 @@ public class HeavenActivityConfig {
             plugin.reloadConfig();
             config = plugin.getConfig();
         }
-        
+
         debug                         = config.getBoolean("general.debug", false);
         maxSequences                  = config.getInt("general.max_sequences", 15);
         defaultSequences              = config.getInt("general.default_sequences", maxSequences);
@@ -122,13 +123,13 @@ public class HeavenActivityConfig {
         incomeSequence                = config.getInt("general.income_sequence", 15);
         pointMultiplier               = config.getDouble("general.point_multiplier", 1.0);
         logCommands                   = config.getBoolean("general.log_commands", false);
-        
+
         incomeEnabled                 = config.getBoolean("income.enabled", true);
         incomeMinActivity             = config.getInt("income.min_activity", 1);
         incomeAllowNegative           = config.getBoolean("income.allow_negative", true);
         incomeExpression              = new Parser(config.getString("income.expression", "8 + (((player_activity - 50) / 75) * 8)"));
         incomeSourceAccount           = config.getString("income.source_account", null);
-        
+
         chatTracking                  = config.getBoolean("chat.tracking", true);
         chatTrackCancelled            = config.getBoolean("chat.track_cancelled", true);
         chatPoints                    = config.getDouble("chat.points", 1.0);
@@ -144,26 +145,30 @@ public class HeavenActivityConfig {
         blockDelay                    = config.getInt("block.delay", 900);
         blockPlacePoints              = config.getDouble("block.place_points", 4.0);
         blockBreakPoints              = config.getDouble("block.break_points", 2.0);
-        
-        Set<String> multiplierNames  = config.getConfigurationSection("multiplier").getKeys(false);
+
+        ConfigurationSection multiplier = config.getConfigurationSection("multiplier");
+        Set<String>multiplierNames = null;
+        if (multiplier != null) {
+            multiplierNames  = multiplier.getKeys(false);
+        }
         if (multiplierNames != null && multiplierNames.size() > 0) {
             Iterator<String> multiplierSetNameIterator = multiplierNames.iterator();
             while (multiplierSetNameIterator.hasNext()) {
                 String multiplierSetName = multiplierSetNameIterator.next();
-                
+
                 Map<ActivitySource, Double> multiplierSet = new HashMap<ActivitySource, Double>();
-                
+
                 final Iterator<String> sourceIterator = config.getConfigurationSection("multiplier." + multiplierSetName).getKeys(false).iterator();
                 while (sourceIterator.hasNext()) {
                     final String source = sourceIterator.next();
                     multiplierSet.put(ActivitySource.parseActivitySource(source), config.getDouble("multiplier." + multiplierSetName + "." + source, 1.0));
                 }
-                
+
                 multiplierSets.put(multiplierSetName, multiplierSet);
             }
         }
     }
-    
+
     public Double pointsFor(ActivitySource source) {
         switch(source) {
         case MOVE:
@@ -181,8 +186,8 @@ public class HeavenActivityConfig {
         case COMMAND_CHAR:
             return commandCharPoints;
         }
-        
+
         return null;
     }
-    
+
 }
