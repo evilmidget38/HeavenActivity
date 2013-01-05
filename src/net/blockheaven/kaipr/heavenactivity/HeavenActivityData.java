@@ -46,7 +46,7 @@ public class HeavenActivityData {
      * @param source
      * @param activity
      */
-    public void addActivity(String playerName, ActivitySource source, Integer count) {
+    public synchronized void addActivity(String playerName, ActivitySource source, Integer count) {
         
         playerName = playerName.toLowerCase();
 

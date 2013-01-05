@@ -1,6 +1,7 @@
 name: HeavenActivity
 main: net.blockheaven.kaipr.heavenactivity.HeavenActivity
 version: 1.0.0-dev
+depend: [Vault]
 commands:
     activity:
         description: Activity commands

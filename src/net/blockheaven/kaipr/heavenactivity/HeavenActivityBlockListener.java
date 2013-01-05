@@ -3,11 +3,12 @@ package net.blockheaven.kaipr.heavenactivity;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-public class HeavenActivityBlockListener extends BlockListener {
+public class HeavenActivityBlockListener implements Listener {
     
     protected HeavenActivity plugin;
     
@@ -22,11 +23,8 @@ public class HeavenActivityBlockListener extends BlockListener {
         this.plugin = plugin;
     }
     
-    @Override
+    @EventHandler(ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        
-        if (event.isCancelled())
-            return;
         
         final long time = System.currentTimeMillis();
         final String playerName = event.getPlayer().getName();
@@ -39,7 +37,7 @@ public class HeavenActivityBlockListener extends BlockListener {
         
     }
     
-    @Override
+    @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         
         if (event.isCancelled())

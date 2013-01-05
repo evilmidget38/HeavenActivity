@@ -3,12 +3,14 @@ package net.blockheaven.kaipr.heavenactivity;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-public class HeavenActivityPlayerListener extends PlayerListener {
+public class HeavenActivityPlayerListener implements Listener {
 
     protected HeavenActivity plugin;
     
@@ -23,11 +25,8 @@ public class HeavenActivityPlayerListener extends PlayerListener {
         this.plugin = plugin;
     }
     
-    @Override
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
-        
-        if (event.isCancelled())
-            return;
         
         // Ignore jumping and driving
         if (event.getPlayer().isInsideVehicle() 
@@ -46,10 +45,10 @@ public class HeavenActivityPlayerListener extends PlayerListener {
         
     }
     
-    @Override
-    public void onPlayerChat(PlayerChatEvent event) {
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerChat(AsyncPlayerChatEvent event) {
         
-        if (event.isCancelled() && !plugin.config.chatTrackCancelled)
+        if (!plugin.config.chatTrackCancelled)
             return;
         
         final String playerName = event.getPlayer().getName();
@@ -63,7 +62,7 @@ public class HeavenActivityPlayerListener extends PlayerListener {
      *
      * @param event Relevant event details
      */
-    @Override
+    @EventHandler
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         
         if (event.isCancelled() && !plugin.config.commandTrackCancelled)

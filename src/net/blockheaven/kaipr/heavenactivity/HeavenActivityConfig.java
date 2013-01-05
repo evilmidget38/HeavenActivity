@@ -8,8 +8,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.bukkit.util.config.Configuration;
+import org.bukkit.configuration.Configuration;
 import org.mbertoli.jfep.Parser;
 
 public class HeavenActivityConfig {
@@ -84,14 +85,15 @@ public class HeavenActivityConfig {
             }
         }
         
-        config = plugin.getConfiguration();
+        config = plugin.getConfig();
         load();
     }
     
     public void load() {
-        config.load();
+        plugin.reloadConfig();
+        config = plugin.getConfig();
         
-        if (config.getProperty("income.base_value") != null && config.getProperty("income.expression") == null) {
+        if (config.isSet("income.base_value") && config.isSet("income.expression")) {
             HeavenActivity.logger.info("[HeavenActivity] Migrating pre-1.0 income configuration to income expression...");
             int baseValue             = config.getInt("income.base_value", 8);
             int targetActivity        = config.getInt("income.target_activity", 50);
@@ -102,13 +104,14 @@ public class HeavenActivityConfig {
             exp.append(baseValue);
             exp.append(" + (((player_activity - ").append(targetActivity).append(") / ").append(activityModifier).append(") * ").append(baseValue).append(")");
             exp.append(" + (player_balance * ").append(balanceMultiplier).append(")");
-            config.setProperty("income.expression", exp.toString());
-            config.removeProperty("income.base_value");
-            config.removeProperty("income.target_activity");
-            config.removeProperty("income.activity_modifier");
-            config.removeProperty("income.balance_multiplier");
-            config.save();
-            config.load();
+            config.set("income.expression", exp.toString());
+            config.set("income.base_value", null);
+            config.set("income.target_activity", null);
+            config.set("income.activity_modifier", null);
+            config.set("income.balance_multiplier", null);
+            plugin.saveConfig();
+            plugin.reloadConfig();
+            config = plugin.getConfig();
         }
         
         debug                         = config.getBoolean("general.debug", false);
@@ -142,7 +145,7 @@ public class HeavenActivityConfig {
         blockPlacePoints              = config.getDouble("block.place_points", 4.0);
         blockBreakPoints              = config.getDouble("block.break_points", 2.0);
         
-        List<String> multiplierNames  = config.getKeys("multiplier");
+        Set<String> multiplierNames  = config.getConfigurationSection("multiplier").getKeys(false);
         if (multiplierNames != null && multiplierNames.size() > 0) {
             Iterator<String> multiplierSetNameIterator = multiplierNames.iterator();
             while (multiplierSetNameIterator.hasNext()) {
@@ -150,7 +153,7 @@ public class HeavenActivityConfig {
                 
                 Map<ActivitySource, Double> multiplierSet = new HashMap<ActivitySource, Double>();
                 
-                final Iterator<String> sourceIterator = config.getKeys("multiplier." + multiplierSetName).iterator();
+                final Iterator<String> sourceIterator = config.getConfigurationSection("multiplier." + multiplierSetName).getKeys(false).iterator();
                 while (sourceIterator.hasNext()) {
                     final String source = sourceIterator.next();
                     multiplierSet.put(ActivitySource.parseActivitySource(source), config.getDouble("multiplier." + multiplierSetName + "." + source, 1.0));
